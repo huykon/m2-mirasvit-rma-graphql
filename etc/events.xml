@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../../lib/internal/Magento/Framework/Event/etc/events.xsd">
+	<event name="simiconnectorgrapqhl_get_storeview_info_after">
+		<observer name="Simi_RMAGraphQl_simiconnector_storeview_info_modify"
+				  instance="Simi\RMAGraphQL\Observer\SimiStoreConfigExtra" />
+	</event>
+</config>

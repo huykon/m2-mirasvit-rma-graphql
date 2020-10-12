@@ -1,0 +1,221 @@
+type Query {
+	rmaListData(
+		increment_id: String @doc(description: "this is the order increment id of the order, if not entered mean that this customer has already login")
+		email: String @doc(description: "this is the email of the customer, if not entered mean that this customer has already login")
+	): [RmaDataInterfaces] @doc(description: "this query return the data listing of all the rmas of the customer who has logged in or the ") @resolver(class: "Simi\\RMAGraphQL\\Model\\Resolver\\ReturnsListingData")
+
+	rmaOfOrder(
+		increment_id: String! @doc(description: "the id of the order")
+	): [RmaDataInterfaces] @doc(description: "this query return the rma of the selected order identified by it's order id, this is used when the customer has already logged in") @resolver(class: "Simi\\RMAGraphQL\\Model\\Resolver\\RmaInfoByOrder")
+
+	RmaDetail(
+		guest_id: String @doc(description: "this is the encoded guest id of this rma, use this to get the info of selefcted rma from rma list")
+	): RmaDataInterfaces @doc(description: "this is the data of specific return order taken by the rma id") @resolver(class: "Simi\\RMAGraphQL\\Model\\Resolver\\DetailRmaInfo")
+	
+	orderIdToCreate(
+	increment_id: String @doc(description: "this is the order id of the order, if not entered mean that this customer has already login")
+	email: String @doc(description: "this is the email of the customer, if not entered mean that this customer has already login")
+		): [String] @doc(description: "this query return the id of allowed order for customer to create new rma order of the customer both offline and online") @resolver(class: "Simi\\RMAGraphQL\\Model\\Resolver\\AllowOrderToCreate")
+
+	newRmaCreateInfo(
+		order_increament_Id: String @doc(description: "this is the selected order to overview it's rma")
+	): OrderNewData @doc(description: "this query return the data to create new rma order of the customer both offline and online") @resolver(class: "Simi\\RMAGraphQL\\Model\\Resolver\\NewRmaInfo")
+}
+
+type SimiStoreConfigDetails {
+	mirasvit_rma_config: SimiStoreConfigDetailsRMAConfigData @doc(description: "return the config data of the Rma")
+}
+
+type SimiStoreConfigDetailsRMAConfigData {
+	general: GeneralConfig
+	customer: CustomerConfig
+	policy: PolicyConfig
+	number: NumberConfig
+	noti_config: NotificationConfig
+	advance: AdvanceConfig
+}
+
+type GeneralConfig {
+	return_address: String
+	default_status: String
+	default_user: String
+	is_require_shipping_confirmation: Boolean
+	shipping_confirmation_text: String
+	is_offline_orders: String
+	is_gift_active: String
+	is_helpdesk_active: String
+	brand_attribute: String
+	file_allowed_extensions: String
+	shipping_label_allowed_extensions: String
+	file_size_limit: String
+}
+
+type CustomerConfig {
+	is_active: String
+	show_guest_rma_by_order: String
+	rma_customer_requirement: String
+
+}
+
+type PolicyConfig {
+	return_period: String
+	allow_in_statuses: String
+	is_allow_multiple_order: String
+	return_only_shipped: String
+	is_active: String
+	policy_block: String
+}
+
+type NumberConfig {
+	allow_manual: String
+	format: String
+	reset_counter: String
+	counter_start: String
+	counter_step: String
+	counter_length: String
+
+}
+
+type NotificationConfig {
+	sender_email: String
+	customer_email_template: String
+	admin_email_template: String
+	rule_template: String
+	send_email_bcc_type: String
+	send_email_bcc: String
+
+}
+
+type AdvanceConfig {
+	apply_styles: String
+}
+
+type Mutation {
+
+	createNewRma(
+		newRmaInfo: NewRmaInfoInput @doc(description: "input type of the new create rma")
+	): RmaDataInterfaces @doc(description: "rerturn the detail information of the crerated rma") @resolver(class: "Simi\\RMAGraphQL\\Model\\Resolver\\CreateRma")
+
+	sendMessage(
+		content: String
+		guest_id: String!
+		input: [SimiUploadInput] @doc(description: "upload file params")
+	): [MessageInterface] @doc(description: "this query send the messeage in client side and then return the message content of the rma in the order of time") @resolver(class: "Simi\\RMAGraphQL\\Model\\Resolver\\SendMessage")
+
+	confirmShipping(
+		guest_id: String!
+	): RmaDataInterfaces @doc(description: "this is the mutation for the customer to confirm shipping so that the status of the rma is changed to package sent") @resolver(class: "Simi\\RMAGraphQL\\Model\\Resolver\\ConfirmShipping")
+}
+
+type MessageInterface @doc(description: "the message interface of the rma"){
+		messaagee_id: Int
+		user_id: Int 
+		customer_name: String
+		type: String
+		content: String
+		is_read: Boolean
+		has_attachment: Boolean
+		items: [SimiUploadedReturn]
+}
+
+type SimiUploadedReturn {
+	name: String @doc(description: "File Name")
+	type: String @doc(description: "File type")
+	full_path: String @doc(description: "File Full path")
+	quote_path: String @doc(description: "File Quote path")
+	order_path: String @doc(description: "File Order path")
+	secret_key: String @doc(description: "File Secret key")
+}
+
+
+input SimiUploadInput {
+	name: String!
+	type: String
+	size: Int
+	base64_encoded_file: String!
+}
+
+input NewRmaInfoInput @doc(description: "the input required to create a new rma order"){
+	order_ids: [String]
+	items: [ItemsInput]
+	selected_order_id: Int
+	reply: String
+	is_offline: String @doc(description: "if this is an offline order, change this value to 1, else leave it")
+}
+
+input ItemsInput @doc(description: "the information of items to create new rma"){
+	order_id: String
+	is_return: String
+	qty_requested: String
+	reason_id: String
+	condition_id: String
+	resolution_id: String
+	is_offline: String @doc(description: "if this is an offline order, change this value to 1, else leave it")
+}
+
+type RmaDataInterfaces @doc(description: "the data inferfaces of rma"){
+	rma_id: String @doc(description: "the RMA number of this order")
+	guest_id: String @doc(description: "the guest id of this rma order, which distinguished which is which")
+	date: String @doc(description: "the created date of this order")
+	increment_id: String @doc(description: "the increment id of this returned order")
+	order_id: String @doc(description: "the order id of this returned order")
+	status_id: Int @doc(description: "current status of this return order")
+	status_history: String @doc(description: "the history status of this rma")
+	message_history: [String] @doc(description: "the history message of this rma")
+	customer_id: Int @doc(description: "the customer id of whom this rma belongs to")
+	order_info: [OrderDetailProduct] @doc(description: "the products information of this order")
+	return_item: [OrderDetailProduct] @doc(description: "the information of this rma items")
+	message: [MessageInterface] @doc(description: "this is the message interface return back in the conversation of this rma")
+}
+
+type OrderNewData @doc(description: "the data of the order when the customere try to create new rma order"){
+	order_id: String
+	order_incrementid: String
+	customer_name: String
+	customer_email: String
+	shiping_adress: ShippingInterface
+	item: [RmaNewItem]
+	error: String
+}
+
+type ShippingInterface @doc(description: "the shipping interface which return the information about the shipping of the order"){
+	customer_name: String
+	company_name: String
+	street_name: String
+	region: String
+	post_code: String
+	country_name : String
+	telephone: String
+}
+
+type RmaNewItem @doc(description: "the item information of the item when the customer want to create a new rma order"){
+	item_id: Int
+	item_name: String
+	item_url: String
+	max_quantity: Int
+	reason: [String]
+	condition: [String]
+	resolution: [String]
+}
+
+type OrderDetailProduct @doc(description: "the products information of this rma"){
+	product_type: String
+	product_id: Int
+	product_name: String
+	sku: String
+	qty_ordered: Int
+	qty_requested: Int
+	qty_returned: Int
+	price: Int
+	url: String
+	reason_condition: ReasonConditionInterface @doc(description: "reason and condition of this return")
+}
+
+type ReasonConditionInterface @doc(description: "the reason and condition of this return"){
+	reason_name: String
+	condition_name: String
+	resolution_name: String
+}
+
+
+
