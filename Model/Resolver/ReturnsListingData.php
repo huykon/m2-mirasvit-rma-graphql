@@ -47,7 +47,14 @@ class ReturnsListingData implements ResolverInterface
 
         if($context->getUserId()){
             $customerCurrentId = $context->getUserId();
-            $model = $this->rmaCollectionFactory->create()->addFieldToFilter('customer_id', $customerCurrentId)->getItems();
+            $collection = $this->rmaCollectionFactory->create();
+            if (isset($args['currentPage']) && isset($args['pageSize'])) {
+                $collection->setPageSize($args['pageSize']);
+                $collection->setCurPage($args['currentPage']);
+            }
+
+            $model = $collection->addFieldToFilter('customer_id', $customerCurrentId)->getItems();
+            
             $dataArray = $this->dataProvider->dataArray($model);
             return $dataArray;
         }
@@ -71,7 +78,12 @@ class ReturnsListingData implements ResolverInterface
             $websiteID = $this->_storemanager->getStore()->getWebsiteId();
             $customer = $this->_customer->create()->setWebsiteId($websiteID)->loadByEmail($args['email']);
             $customerId = $customer->getId();
-            $model = $this->rmaCollectionFactory->create()->addFieldToFilter('customer_id', $customerId)->getItems();
+            $collection = $this->rmaCollectionFactory->create();
+            if (isset($args['currentPage']) && isset($args['pageSize'])) {
+                $collection->setPageSize($args['pageSize']);
+                $collection->setCurPage($args['currentPage']);
+            }
+            $model = $collection->addFieldToFilter('customer_id', $customerId)->getItems();
             $dataArrays = $this->dataProvider->dataArray($model);
                 //if the config allow to give back all the rma of that customer 
             if ($this->frontendConfig->showGuestRmaByOrder() == 1){

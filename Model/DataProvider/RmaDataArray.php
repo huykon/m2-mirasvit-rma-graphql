@@ -63,6 +63,7 @@ class RmaDataArray
         $rmaDataItem = [];
         $rmaDataMessage = [];
 	    $rmaArray = [];
+
         foreach ($model as $rma) {
             //get the message data of this rma
             $messages = $this->messageFactory->create()->addFieldToFilter('is_visible_in_frontend', '1')->addFieldToFilter('rma_id',$rma->getId())->getData();
@@ -165,6 +166,8 @@ class RmaDataArray
         $rmaArray[$rma->getId()]['increment_id'] = $orderIncrementId;
         $rmaArray[$rma->getId()]['message'] = $rmaDataMessage;
         $rmaArray[$rma->getId()]['order_id'] = $orderId;
+        $rmaArray[$rma->getId()]['rma_increment_id'] = $rma['increment_id'];
+        $rmaArray[$rma->getId()]['create_at'] = $rma['created_at'];
         $orderDataItem = [];
         $rmaDataItem = [];
         $rmaDataMessage = [];

@@ -1,11 +1,15 @@
 type Query {
 	rmaListData(
-		increment_id: String @doc(description: "this is the order increment id of the order, if not entered mean that this customer has already login")
-		email: String @doc(description: "this is the email of the customer, if not entered mean that this customer has already login")
+		increment_id: String @doc(description: "this is the order increment id of the order, if not entered mean that this customer has already login"),
+		email: String @doc(description: "this is the email of the customer, if not entered mean that this customer has already login"),
+		pageSize: Int = 20 @doc(description: "Specifies the maximum number of results to return at once. This attribute is optional."),
+        currentPage: Int = 1 @doc(description: "Specifies which page of results to return. The default value is 1.")
 	): [RmaDataInterfaces] @doc(description: "this query return the data listing of all the rmas of the customer who has logged in or the ") @resolver(class: "Simi\\RMAGraphQL\\Model\\Resolver\\ReturnsListingData")
 
 	rmaOfOrder(
-		increment_id: String! @doc(description: "the id of the order")
+		increment_id: String! @doc(description: "the id of the order"),
+		pageSize: Int = 20 @doc(description: "Specifies the maximum number of results to return at once. This attribute is optional."),
+		currentPage: Int = 1 @doc(description: "Specifies which page of results to return. The default value is 1.")
 	): [RmaDataInterfaces] @doc(description: "this query return the rma of the selected order identified by it's order id, this is used when the customer has already logged in") @resolver(class: "Simi\\RMAGraphQL\\Model\\Resolver\\RmaInfoByOrder")
 
 	RmaDetail(
@@ -166,6 +170,8 @@ type RmaDataInterfaces @doc(description: "the data inferfaces of rma"){
 	order_info: [OrderDetailProduct] @doc(description: "the products information of this order")
 	return_item: [OrderDetailProduct] @doc(description: "the information of this rma items")
 	message: [MessageInterface] @doc(description: "this is the message interface return back in the conversation of this rma")
+	create_at: String @doc(description: "exact time this rma was created")
+	rma_increment_id: String @doc(description: "increment id of the rma")
 }
 
 type OrderNewData @doc(description: "the data of the order when the customere try to create new rma order"){
