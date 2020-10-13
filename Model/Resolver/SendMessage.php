@@ -168,7 +168,7 @@ class SendMessage implements ResolverInterface
     private function getLatestId($guestId){
         $arrays = $this->getThisRmaData($guestId)['message'];
         $lastmessage =  end($arrays);
-        return $lastmessage['messaagee_id'];
+        return $lastmessage['message_id'];
     }
 
     private function getOrderId($guestId){

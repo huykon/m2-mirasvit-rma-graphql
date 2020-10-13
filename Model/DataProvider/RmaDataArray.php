@@ -29,6 +29,7 @@ class RmaDataArray
     protected $attachmentFactory; 
     private $fileSystem;
     protected $attachmentRepository;
+    protected $statusCollection;
     
     public function __construct(
         CollectionFactory $productCollection,
@@ -43,7 +44,8 @@ class RmaDataArray
         \Magento\Catalog\Model\ProductRepository $productRepository,
         \Mirasvit\Rma\Model\ResourceModel\Attachment\CollectionFactory $attachmentFactory,
         Filesystem $fileSystem,
-        \Mirasvit\Rma\Api\Repository\AttachmentRepositoryInterface $attachmentRepository
+        \Mirasvit\Rma\Api\Repository\AttachmentRepositoryInterface $attachmentRepository,
+        \Mirasvit\Rma\Model\ResourceModel\Status\CollectionFactory $statusCollection
     ) {
         $this->storeManager = $storeManager;
         $this->rmaCollectionFactory = $rmaCollectionFactory;
@@ -57,6 +59,7 @@ class RmaDataArray
         $this->attachmentFactory = $attachmentFactory;
         $this->fileSystem = $fileSystem;
         $this->attachmentRepository = $attachmentRepository;
+        $this->statusCollection = $statusCollection;
     }
     public function dataArray($model){
         $orderDataItem = [];
@@ -69,7 +72,7 @@ class RmaDataArray
             $messages = $this->messageFactory->create()->addFieldToFilter('is_visible_in_frontend', '1')->addFieldToFilter('rma_id',$rma->getId())->getData();
             usort($messages, $this->build_sorter('message_id'));
             foreach($messages as $message){
-                //search whether this messaage have attachment or not
+                //search whether this message have attachment or not
                 $attachmentsData = $this->attachmentFactory->create()->addFieldToFilter('item_id', $message['message_id']);
                 $attachments = [];
                 if($attachmentsData){
@@ -104,7 +107,7 @@ class RmaDataArray
                 }
                 $messageObject = [
 
-                    'messaagee_id' => $message['message_id'],
+                    'message_id' => $message['message_id'],
                     'user_id' => isset($message['user_id'])?$message['user_id']:null,
                     'customer_name' => $message['customer_name'],
                     'type' => $message['type'],
@@ -146,7 +149,7 @@ class RmaDataArray
         }
         //get this rma order detail
         $order = $this->rmaManagement->getOrders($rma);
-        // die(var_dump(json_decode(json_encode($order))));
+        
         foreach($this->rmaManagement->getOrders($rma) as $order)
         {
             $orderId = $order->getID();
@@ -159,6 +162,8 @@ class RmaDataArray
             }
 
         }
+        $history_message = $this->statusCollection->create()->addFieldToFilter('status_id', $rma->getData()['status_id'])->getData()[0]['history_message'];
+
         $rmaArray[$rma->getId()] = $rma->getData();
         $rmaArray[$rma->getId()]['model'] = $rma;
         $rmaArray[$rma->getId()]['order_info'] = $orderDataItem;
@@ -168,6 +173,7 @@ class RmaDataArray
         $rmaArray[$rma->getId()]['order_id'] = $orderId;
         $rmaArray[$rma->getId()]['rma_increment_id'] = $rma['increment_id'];
         $rmaArray[$rma->getId()]['create_at'] = $rma['created_at'];
+        $rmaArray[$rma->getId()]['history_message'] = $history_message;
         $orderDataItem = [];
         $rmaDataItem = [];
         $rmaDataMessage = [];

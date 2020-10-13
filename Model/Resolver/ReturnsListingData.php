@@ -47,16 +47,26 @@ class ReturnsListingData implements ResolverInterface
 
         if($context->getUserId()){
             $customerCurrentId = $context->getUserId();
-            $collection = $this->rmaCollectionFactory->create();
-            if (isset($args['currentPage']) && isset($args['pageSize'])) {
-                $collection->setPageSize($args['pageSize']);
-                $collection->setCurPage($args['currentPage']);
-            }
 
+            $collection = $this->rmaCollectionFactory->create();
+            $collection->setPageSize($args['pageSize']);
+            $collection->setCurPage($args['currentPage']);
+            $size = $collection->getSize();
+            $maxPages = (int)ceil($size/$args['pageSize']);
             $model = $collection->addFieldToFilter('customer_id', $customerCurrentId)->getItems();
-            
             $dataArray = $this->dataProvider->dataArray($model);
-            return $dataArray;
+            
+            $page_info = [
+                'page_size' => $args['pageSize'],
+                'current_page' => $args['currentPage'],
+                'total_pages' => $maxPages
+            ];
+
+            $returnData = [
+                'items'=> $dataArray,
+                'page_info' => $page_info
+            ];
+            return $returnData;
         }
         //for offline customer
         elseif(isset($args['increment_id']) && isset($args['email'])){
@@ -78,18 +88,32 @@ class ReturnsListingData implements ResolverInterface
             $websiteID = $this->_storemanager->getStore()->getWebsiteId();
             $customer = $this->_customer->create()->setWebsiteId($websiteID)->loadByEmail($args['email']);
             $customerId = $customer->getId();
+
             $collection = $this->rmaCollectionFactory->create();
-            if (isset($args['currentPage']) && isset($args['pageSize'])) {
-                $collection->setPageSize($args['pageSize']);
-                $collection->setCurPage($args['currentPage']);
-            }
+            
+            $collection->setPageSize($args['pageSize']);
+            $collection->setCurPage($args['currentPage']);
+            $size = $collection->getSize();
+            $maxPages = (int)ceil($size/$args['pageSize']);
+
             $model = $collection->addFieldToFilter('customer_id', $customerId)->getItems();
             $dataArrays = $this->dataProvider->dataArray($model);
+
                 //if the config allow to give back all the rma of that customer 
             if ($this->frontendConfig->showGuestRmaByOrder() == 1){
-                return $dataArrays;
+                $page_info = [
+                    'page_size' => $args['pageSize'],
+                    'current_page' => $args['currentPage'],
+                    'total_pages' => $maxPages
+                ];
+
+                $returnData = [
+                    'items'=> $dataArrays,
+                    'page_info' => $page_info
+                ];
+                return $returnData;
             }
-                //if the config only allow to return the 
+                //if the config only allow to return the rma of this order
             else{
                 $returnArray = [];
                 foreach($dataArrays as $dataArray){
@@ -97,13 +121,21 @@ class ReturnsListingData implements ResolverInterface
                         array_push($returnArray, $dataArray);
                     }
                 }
+                $page_info = [
+                    'page_size' => $args['pageSize'],
+                    'current_page' => $args['currentPage'],
+                    'total_pages' => $maxPages
+                ];
+
+                $returnData = [
+                    'items'=> $returnArray,
+                    'page_info' => $page_info
+                ];
+                return $returnData;
             }
-            return $returnArray;
         } elseif (isset($args['increment_id'])) {
             throw new \Magento\Framework\Exception\LocalizedException(__('Wrong Order or Email'));
-        }
-
-        
+        }  
     }
 }
 

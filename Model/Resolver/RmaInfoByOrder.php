@@ -54,9 +54,11 @@ class RmaInfoByOrder implements ResolverInterface
         //start the logic
         $collection = $this->rmaCollectionFactory->create();
         if (isset($args['currentPage']) && isset($args['pageSize'])) {
+            $maxPages = (int)ceil(sizeof($collection->load()) / $args['pageSize']);
             $collection->setPageSize($args['pageSize']);
             $collection->setCurPage($args['currentPage']);
         }
+
         $model = $collection->getItems();
         $dataArrays = $this->dataProvider->dataArray($model);
         $returnArray =[];
@@ -65,7 +67,17 @@ class RmaInfoByOrder implements ResolverInterface
                 array_push($returnArray, $dataArray);
             }
         }
-        return $returnArray;
+        $page_info = [
+            'page_size' => $args['pageSize'],
+            'current_page' => $args['currentPage'],
+            'total_pages' => $maxPages
+        ];
+
+        $returnData = [
+            'items'=> $dataArrays,
+            'page_info' => $page_info
+        ];
+        return $returnData;
     }
 }
 
