@@ -53,11 +53,10 @@ class RmaInfoByOrder implements ResolverInterface
 
         //start the logic
         $collection = $this->rmaCollectionFactory->create();
-        if (isset($args['currentPage']) && isset($args['pageSize'])) {
-            $maxPages = (int)ceil(sizeof($collection->load()) / $args['pageSize']);
-            $collection->setPageSize($args['pageSize']);
-            $collection->setCurPage($args['currentPage']);
-        }
+        $collection->setPageSize($args['pageSize']);
+        $collection->setCurPage($args['currentPage']);
+        $size = $collection->getSize();
+        $maxPages = (int)ceil($size/$args['pageSize']);
 
         $model = $collection->getItems();
         $dataArrays = $this->dataProvider->dataArray($model);
