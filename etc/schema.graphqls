@@ -227,6 +227,7 @@ type OrderDetailProduct @doc(description: "the products information of this rma"
 	qty_returned: Int
 	price: Int
 	url: String
+	created_at: String
 	reason_condition: ReasonConditionInterface @doc(description: "reason and condition of this return")
 }
 

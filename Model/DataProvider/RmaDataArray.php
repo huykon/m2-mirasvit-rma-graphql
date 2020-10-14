@@ -176,12 +176,14 @@ class RmaDataArray
             foreach ($orderDetail->getAllItems() as $item) 
             {
                 $data = $item->getData();
+
                 $product = $this->_productRepositoryFactory->create()
                 ->getById($data['product_id']);
                 // die(var_dump($product->getData()['image']));
                 $productUrl = $product->getData()['image'];
                 $data['url'] = $this->getBaseUrl() .'/catalog/product'. $productUrl;
                 $totals += $item->getData()['base_row_total'];
+                $grandTotals = '$' . $totals;
                 $sku = $data['sku'];
                 array_push($orderDataItem, $data);
             }
@@ -199,9 +201,10 @@ class RmaDataArray
         $rmaArray[$rma->getId()]['rma_increment_id'] = $rma['increment_id'];
         $rmaArray[$rma->getId()]['create_at'] = $rma['created_at'];
         $rmaArray[$rma->getId()]['history_message'] = $history_message;
-        $rmaArray[$rma->getId()]['grand_totals'] = $totals;
+        $rmaArray[$rma->getId()]['grand_totals'] = $grandTotals;
 
         $totals = 0;
+        $grandTotals = "";
         $orderDataItem = [];
         $rmaDataItem = [];
         $rmaDataMessage = [];
