@@ -123,6 +123,8 @@ class RmaDataArray {
 					'type'          => $message['type'],
 					'content'       => $message['text'],
 					'is_read'       => $message['is_read'],
+					'created_at'    => $message['created_at'],
+					'updated_at'    => $message['updated_at'],
 					'items'         => $attachments
 				];
 				array_push( $rmaDataMessage, $messageObject );
@@ -209,5 +211,5 @@ class RmaDataArray {
 	private function getBaseUrl() {
 		return $this->storeManager->getStore()->getBaseUrl( \Magento\Framework\UrlInterface::URL_TYPE_MEDIA );
 	}
-	
+
 }
