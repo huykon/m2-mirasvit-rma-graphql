@@ -31,7 +31,9 @@ class RmaDataArray
     protected $attachmentRepository;
     protected $statusCollection;
     protected $_productRepositoryFactory;
-    
+    protected $statusRepository;
+    protected $mailHelper;
+
     public function __construct(
         CollectionFactory $productCollection,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
@@ -47,7 +49,9 @@ class RmaDataArray
         Filesystem $fileSystem,
         \Mirasvit\Rma\Api\Repository\AttachmentRepositoryInterface $attachmentRepository,
         \Mirasvit\Rma\Model\ResourceModel\Status\CollectionFactory $statusCollection,
-        \Magento\Catalog\Api\ProductRepositoryInterfaceFactory $productRepositoryFactory
+        \Magento\Catalog\Api\ProductRepositoryInterfaceFactory $productRepositoryFactory,
+        \Mirasvit\Rma\Api\Repository\StatusRepositoryInterface $statusRepository,
+        \Mirasvit\Rma\Helper\Mail $mailHelper
     ) {
         $this->_productRepositoryFactory = $productRepositoryFactory;
         $this->storeManager = $storeManager;
@@ -63,6 +67,8 @@ class RmaDataArray
         $this->fileSystem = $fileSystem;
         $this->attachmentRepository = $attachmentRepository;
         $this->statusCollection = $statusCollection;
+        $this->statusRepository = $statusRepository;
+        $this->mailHelper = $mailHelper;
     }
     public function dataArray($model)
     {
@@ -189,7 +195,9 @@ class RmaDataArray
             }
 
         }
-        $history_message = $this->statusCollection->create()->addFieldToFilter('status_id', $rma->getData()['status_id'])->getData()[0]['history_message'];
+        $status = $this->rmaManagement->getStatus($rma);
+        $message = $this->statusRepository->getHistoryMessageForStore($status, $rma->getStoreId());
+        $history_message = $this->mailHelper->parseVariables($message, $rma);
 
         $rmaArray[$rma->getId()] = $rma->getData();
         $rmaArray[$rma->getId()]['model'] = $rma;
