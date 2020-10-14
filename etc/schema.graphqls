@@ -184,6 +184,7 @@ type RmaDataInterfaces @doc(description: "the data inferfaces of rma"){
 	create_at: String @doc(description: "exact time this rma was created")
 	rma_increment_id: String @doc(description: "increment id of the rma")
 	history_message: String @dodc(description: "the history message of the status id")
+	grand_totals: String @doc(description: "the grand totals amount of the order")
 }
 
 type OrderNewData @doc(description: "the data of the order when the customere try to create new rma order"){

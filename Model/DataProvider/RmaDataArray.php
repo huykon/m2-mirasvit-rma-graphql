@@ -30,6 +30,7 @@ class RmaDataArray
     private $fileSystem;
     protected $attachmentRepository;
     protected $statusCollection;
+    protected $_productRepositoryFactory;
     
     public function __construct(
         CollectionFactory $productCollection,
@@ -45,8 +46,10 @@ class RmaDataArray
         \Mirasvit\Rma\Model\ResourceModel\Attachment\CollectionFactory $attachmentFactory,
         Filesystem $fileSystem,
         \Mirasvit\Rma\Api\Repository\AttachmentRepositoryInterface $attachmentRepository,
-        \Mirasvit\Rma\Model\ResourceModel\Status\CollectionFactory $statusCollection
+        \Mirasvit\Rma\Model\ResourceModel\Status\CollectionFactory $statusCollection,
+        \Magento\Catalog\Api\ProductRepositoryInterfaceFactory $productRepositoryFactory
     ) {
+        $this->_productRepositoryFactory = $productRepositoryFactory;
         $this->storeManager = $storeManager;
         $this->rmaCollectionFactory = $rmaCollectionFactory;
         $this->productCollection = $productCollection;
@@ -61,27 +64,32 @@ class RmaDataArray
         $this->attachmentRepository = $attachmentRepository;
         $this->statusCollection = $statusCollection;
     }
-    public function dataArray($model){
+    public function dataArray($model)
+    {
         $orderDataItem = [];
         $rmaDataItem = [];
         $rmaDataMessage = [];
-	    $rmaArray = [];
+        $rmaArray = [];
 
-        foreach ($model as $rma) {
+        foreach ($model as $rma) 
+        {
             //get the message data of this rma
             $messages = $this->messageFactory->create()->addFieldToFilter('is_visible_in_frontend', '1')->addFieldToFilter('rma_id',$rma->getId())->getData();
             usort($messages, $this->build_sorter('message_id'));
-            foreach($messages as $message){
+            foreach($messages as $message)
+            {
                 //search whether this message have attachment or not
                 $attachmentsData = $this->attachmentFactory->create()->addFieldToFilter('item_id', $message['message_id']);
                 $attachments = [];
-                if($attachmentsData){
+                if($attachmentsData)
+                {
                     // die('123');
                     $mediaPath     = $this->fileSystem->getDirectoryRead( DirectoryList::MEDIA )->getAbsolutePath();
                     $originalPath  = 'Simicustomize/graphql/';
                     $mediaFullPath = $mediaPath . $originalPath;
 
-                    foreach($attachmentsData as $attachmentData){
+                    foreach($attachmentsData as $attachmentData)
+                    {
                         $uid = $attachmentData['uid'];
                         $attachment = $this->attachmentRepository->getByUid($uid);
                         $fileName = $attachment->getName();
@@ -99,10 +107,12 @@ class RmaDataArray
                     }
                 }
 
-                if(isset($message['user_id'])){
+                if(isset($message['user_id']))
+                {
                     $message['type'] = 'admin message';
                 }
-                else{
+                else
+                {
                     $message['type'] = 'customer message';
                 }
                 $messageObject = [
@@ -120,7 +130,8 @@ class RmaDataArray
             
             //get this rma return items and it's detail
             $rma_items = $this->itemModelFactory->create()->addFieldToFilter('rma_id', $rma->getId())->getData();
-            foreach($rma_items as $rma_item){
+            foreach($rma_items as $rma_item)
+            {
                 //get the message of this rma
                 //end of get message for this rma
                 $condition = [
@@ -130,9 +141,11 @@ class RmaDataArray
                 ];
                 $productCollection = $this->_productCollectionFactory->create();
                 $productCollection->addAttributeToSelect('*');
-                foreach ($productCollection as $product){
+                foreach ($productCollection as $product)
+                {
                     // die(var_dump($rma_items));
-                 if($product->getData()['sku'] == $rma_item['product_sku']){
+                   if($product->getData()['sku'] == $rma_item['product_sku'])
+                   {
                     $productUrl = $product->getData()['image'];
                     break;
                 }
@@ -149,15 +162,27 @@ class RmaDataArray
         }
         //get this rma order detail
         $order = $this->rmaManagement->getOrders($rma);
-        
+
         foreach($this->rmaManagement->getOrders($rma) as $order)
         {
+
             $orderId = $order->getID();
             $orderDetail = $this->orderRepository->get($orderId);
             $orderIncrementId = $orderDetail->getIncrementId();
+            $totals = 0;
+            $productCollection = $this->_productCollectionFactory->create();
+            $productCollection->addAttributeToSelect('*');
 
-            foreach ($orderDetail->getAllItems() as $item) {
+            foreach ($orderDetail->getAllItems() as $item) 
+            {
                 $data = $item->getData();
+                $product = $this->_productRepositoryFactory->create()
+                ->getById($data['product_id']);
+                // die(var_dump($product->getData()['image']));
+                $productUrl = $product->getData()['image'];
+                $data['url'] = $this->getBaseUrl() .'/catalog/product'. $productUrl;
+                $totals += $item->getData()['base_row_total'];
+                $sku = $data['sku'];
                 array_push($orderDataItem, $data);
             }
 
@@ -174,6 +199,9 @@ class RmaDataArray
         $rmaArray[$rma->getId()]['rma_increment_id'] = $rma['increment_id'];
         $rmaArray[$rma->getId()]['create_at'] = $rma['created_at'];
         $rmaArray[$rma->getId()]['history_message'] = $history_message;
+        $rmaArray[$rma->getId()]['grand_totals'] = $totals;
+
+        $totals = 0;
         $orderDataItem = [];
         $rmaDataItem = [];
         $rmaDataMessage = [];
