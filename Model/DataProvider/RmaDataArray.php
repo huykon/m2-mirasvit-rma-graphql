@@ -33,6 +33,7 @@ class RmaDataArray
     protected $_productRepositoryFactory;
     protected $statusRepository;
     protected $mailHelper;
+    protected $currency;
 
     public function __construct(
         CollectionFactory $productCollection,
@@ -51,7 +52,8 @@ class RmaDataArray
         \Mirasvit\Rma\Model\ResourceModel\Status\CollectionFactory $statusCollection,
         \Magento\Catalog\Api\ProductRepositoryInterfaceFactory $productRepositoryFactory,
         \Mirasvit\Rma\Api\Repository\StatusRepositoryInterface $statusRepository,
-        \Mirasvit\Rma\Helper\Mail $mailHelper
+        \Mirasvit\Rma\Helper\Mail $mailHelper,
+        \Magento\Directory\Model\Currency $currency
     ) {
         $this->_productRepositoryFactory = $productRepositoryFactory;
         $this->storeManager = $storeManager;
@@ -69,6 +71,7 @@ class RmaDataArray
         $this->statusCollection = $statusCollection;
         $this->statusRepository = $statusRepository;
         $this->mailHelper = $mailHelper;
+        $this->currency = $currency;
     }
     public function dataArray($model)
     {
@@ -189,7 +192,7 @@ class RmaDataArray
                 $productUrl = $product->getData()['image'];
                 $data['url'] = $this->getBaseUrl() .'/catalog/product'. $productUrl;
                 $totals += $item->getData()['base_row_total'];
-                $grandTotals = '$' . $totals;
+                $grandTotals = $this->getCurrencySymbol() . $totals;
                 $sku = $data['sku'];
                 array_push($orderDataItem, $data);
             }
@@ -230,6 +233,10 @@ private function build_sorter($key)
 }
 private function getBaseUrl(){
     return $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA);
+}
+
+private function getCurrencySymbol(){
+    return $this->currency->getCurrencySymbol();
 }
 
 }
