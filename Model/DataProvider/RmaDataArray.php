@@ -82,7 +82,6 @@ class RmaDataArray {
 		foreach ( $model as $rma ) {
 			//get the message data of this rma
 			$messages = $this->messageFactory->create()->addFieldToFilter( 'is_visible_in_frontend', '1' )->addFieldToFilter( 'rma_id', $rma->getId() )->getData();
-			usort( $messages, $this->build_sorter( 'message_id' ) );
 			foreach ( $messages as $message ) {
 				//search whether this message have attachment or not
 				$attachmentsData = $this->attachmentFactory->create()->addFieldToFilter( 'item_id', $message['message_id'] );
@@ -197,7 +196,6 @@ class RmaDataArray {
 			$rmaArray[ $rma->getId() ]['history_message']  = $history_message;
 			$rmaArray[ $rma->getId() ]['grand_totals']     = $grandTotals;
 
-			$totals         = 0;
 			$grandTotals    = "";
 			$orderDataItem  = [];
 			$rmaDataItem    = [];
@@ -208,18 +206,8 @@ class RmaDataArray {
 		return $rmaArray;
 	}
 
-	private function build_sorter( $key ) {
-		return function ( $a, $b ) use ( $key ) {
-			return strnatcmp( (int) $a[ $key ], (int) $b[ $key ] );
-		};
-	}
-
 	private function getBaseUrl() {
 		return $this->storeManager->getStore()->getBaseUrl( \Magento\Framework\UrlInterface::URL_TYPE_MEDIA );
 	}
-
-	private function getCurrencySymbol() {
-		return $this->currency->getCurrencySymbol();
-	}
-
+	
 }
