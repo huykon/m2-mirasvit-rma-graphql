@@ -119,6 +119,8 @@ type MessageInterface @doc(description: "the message interface of the rma"){
 		content: String
 		is_read: Boolean
 		has_attachment: Boolean
+		created_at: String
+		updated_at: String
 		items: [SimiUploadedReturn]
 }
 
