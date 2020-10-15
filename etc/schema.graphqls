@@ -105,7 +105,7 @@ type Mutation {
 
 	sendMessage(
 		content: String
-		guest_id: String!
+		guest_id: Int!
 		input: [SimiUploadInput] @doc(description: "upload file params")
 	): [MessageInterface] @doc(description: "this query send the messeage in client side and then return the message content of the rma in the order of time") @resolver(class: "Simi\\RMAGraphQL\\Model\\Resolver\\SendMessage")
 
