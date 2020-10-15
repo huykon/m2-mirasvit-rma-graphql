@@ -118,7 +118,6 @@ class SendMessage implements ResolverInterface
                         $error = true;
                         continue;
                     }
-                    die(var_dump($error));
                     
 
                     $base64FileArray = explode( ',', $input['base64_encoded_file'] );
@@ -162,7 +161,8 @@ class SendMessage implements ResolverInterface
     }
 
     private function getReturnMessage($guestId){
-        return $this->getThisRmaData($guestId)['message'];
+        die(var_dump(json_decode(json_encode($this->getThisRmaData($guestId)))));
+        $rma_id =  $this->getThisRmaData($guestId)['rma_id'];
     }
 
     private function getLatestId($guestId){
