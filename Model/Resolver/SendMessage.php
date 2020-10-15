@@ -72,6 +72,7 @@ class SendMessage implements ResolverInterface
         ];
         $message = $args['content'];
         $performer = $this->getPerfomer($context, $this->getOrderId($args['guest_id']));
+        
         $this->addMessage(
             $performer,
             $rma,
@@ -107,7 +108,7 @@ class SendMessage implements ResolverInterface
 
                 $fileSizeLimit = (float)$this->config->getFileSizeLimit() * 1024 * 1024;
                 $allowedFileExtensions = $this->config->getFileAllowedExtensions();
-
+                $error = false;
                 foreach ( $args['input'] as $input ) {
                     $fileType      = isset( $input['type'] ) ? $input['type'] : '';
                     $fileName        = rand() . time() . '_' . $input['name'];
@@ -194,13 +195,8 @@ class SendMessage implements ResolverInterface
     }
     private function getPerfomer($context, $orderId){
         try {
-            if ($context->getUserId()) {
-                return $this->customerStrategy->getPerformer();
-            } else {
                 $this->guestStrategy->setOrderId($orderId);
-                return $this->guestStrategy->getPerformer();
-
-            }
+                return $this->guestStrategy->getPerformer();            
         } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
             return $this->noAccessStrategy->getPerformer();
         }

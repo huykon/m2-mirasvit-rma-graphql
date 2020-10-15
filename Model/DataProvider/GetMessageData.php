@@ -81,7 +81,7 @@ class GetMessageData
                     array_push( $attachments, $attachment );
                 }
             }
-
+             // die(var_dump($message['customer_id']));
             $messageObject = [
                 'message_id'    => $message['message_id'],
                 'user_id'       => $message['user_id'],

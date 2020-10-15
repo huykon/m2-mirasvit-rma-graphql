@@ -60,17 +60,21 @@ class CreateRma implements ResolverInterface
     public function resolve(Field $field, $context, ResolveInfo $info, array $value = null, array $args = null)
     {
         // die(var_dump(get_class_methods($this->guestStrategy)));
-        $orderId = $args['newRmaInfo']['order_ids'];
+
+        $orderId = $args['newRmaInfo']['order_ids'][0];
         $orderItemIds = $this->getOrderItemsId($args['newRmaInfo']);
         
         for ($i=0; $i <sizeof($args['newRmaInfo']['items']) ; $i++) { 
             $args['newRmaInfo']['items'][$orderItemIds[$i]] = $args['newRmaInfo']['items'][$i];
             unset($args['newRmaInfo']['items'][$i]);
         }
+
         $strategy = $this->getStrategy($context, $orderId);
         $data = $args['newRmaInfo'];
         $data['store_id'] = (int)$context->getExtensionAttributes()->getStore()->getId();
             // $data = $this->dataProcessor->createOfflineOrder($data);
+        $this->getPerfomer($context, $orderId);
+        
         $rma  = $this->rmaSaveService->saveRma(
             $this->getPerfomer($context, $orderId),
             $this->dataProcessor->filterRmaData($data),
