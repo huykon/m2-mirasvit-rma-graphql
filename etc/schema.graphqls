@@ -115,7 +115,7 @@ type MessageInterface @doc(description: "the message interface of the rma"){
 		message_id: Int
 		user_id: Int 
 		customer_name: String
-		type: String
+		customer_id: String
 		content: String
 		is_read: Boolean
 		has_attachment: Boolean
@@ -131,6 +131,7 @@ type SimiUploadedReturn {
 	quote_path: String @doc(description: "File Quote path")
 	order_path: String @doc(description: "File Order path")
 	secret_key: String @doc(description: "File Secret key")
+	link: String @doc(description: "Link to controller of attachment uid")
 }
 
 

@@ -77,8 +77,9 @@ class RmaDataArray {
 		$rmaDataItem    = [];
 		$rmaDataMessage = [];
 		$rmaArray       = [];
-		$grandTotals = '';
+		$grandTotals    = '';
 		$orderIncrementIds = [];
+		$storeBaseUrl   = $this->storeManager->getStore()->getBaseUrl();
 
 		foreach ( $model as $rma ) {
 			//get the message data of this rma
@@ -94,34 +95,30 @@ class RmaDataArray {
 					$mediaFullPath = $mediaPath . $originalPath;
 
 					foreach ( $attachmentsData as $attachmentData ) {
-						$uid        = $attachmentData['uid'];
-						$attachment = $this->attachmentRepository->getByUid( $uid );
-						$fileName   = $attachment->getName();
-						// die(var_dump($fileName));
-						$fileType   = $attachment->getType();
+						$uid                     = $attachmentData['uid'];
+						$attachment              = $this->attachmentRepository->getByUid( $uid );
+						$fileName                = $attachment->getName();
+						$fileType                = $attachment->getType();
+						$attachmentControllerUrl = $storeBaseUrl . 'returns/attachment/download/uid/' . $uid;
+
 						$attachment = [
 							'name'       => $fileName,
 							'type'       => $fileType,
 							'full_path'  => $mediaFullPath . $fileName,
 							'quote_path' => $originalPath . $fileName,
 							'order_path' => $originalPath . $fileName,
+							'link'       => $attachmentControllerUrl
 							// 'secret_key' => substr( md5( file_get_contents( $mediaFullPath . $fileName ) ), 0, 20 )
 						];
 						array_push( $attachments, $attachment );
 					}
 				}
 
-				if ( isset( $message['user_id'] ) ) {
-					$message['type'] = 'admin message';
-				} else {
-					$message['type'] = 'customer message';
-				}
 				$messageObject = [
-
 					'message_id'    => $message['message_id'],
-					'user_id'       => isset( $message['user_id'] ) ? $message['user_id'] : null,
+					'user_id'       => $message['user_id'],
 					'customer_name' => $message['customer_name'],
-					'type'          => $message['type'],
+					'customer_id'   => $message['customer_id'],
 					'content'       => $message['text'],
 					'is_read'       => $message['is_read'],
 					'created_at'    => $message['created_at'],
@@ -171,11 +168,12 @@ class RmaDataArray {
 				array_push($orderIncrementIds, $orderIncrementId);
 				$productCollection = $this->_productCollectionFactory->create();
 				$productCollection->addAttributeToSelect( '*' );
-				$grandTotals = ['value' => (float) $order->getGrandTotal(), 'currency' => $order->getOrderCurrencyCode()];
+				$grandTotals = [ 'value'    => (float) $order->getGrandTotal(),
+				                 'currency' => $order->getOrderCurrencyCode()
+				];
 
 				foreach ( $orderDetail->getAllItems() as $item ) {
 					$data = $item->getData();
-					// die(var_dump($data));
 					$orderDetail       = $this->orderRepository->get( $data['order_id'] );
 					$orderIncrementId  = $orderDetail->getIncrementId();
 					$product = $this->_productRepositoryFactory->create()->getById( $data['product_id'] );
