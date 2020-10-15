@@ -36,7 +36,7 @@ class RmaDataArray {
 		\Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
 		\Mirasvit\Rma\Api\Service\Rma\RmaManagementInterface $rmaManagement,
 		\Mirasvit\Rma\Model\ResourceModel\Item\CollectionFactory $itemModelFactory,
-		\Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactor,
+		\Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
 		\Magento\Catalog\Model\ProductRepository $productRepository,
 		\Mirasvit\Rma\Model\ResourceModel\Status\CollectionFactory $statusCollection,
 		\Magento\Catalog\Api\ProductRepositoryInterfaceFactory $productRepositoryFactory,
@@ -53,9 +53,6 @@ class RmaDataArray {
 		$this->itemModelFactory          = $itemModelFactory;
 		$this->_productCollectionFactory = $productCollectionFactory;
 		$this->_productRepository        = $productRepository;
-		$this->attachmentFactory         = $attachmentFactory;
-		$this->fileSystem                = $fileSystem;
-		$this->attachmentRepository      = $attachmentRepository;
 		$this->statusCollection          = $statusCollection;
 		$this->statusRepository          = $statusRepository;
 		$this->mailHelper                = $mailHelper;

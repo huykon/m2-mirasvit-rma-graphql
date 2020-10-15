@@ -17,7 +17,8 @@ use Magento\Framework\Exception\LocalizedException;
 class SendMessage implements ResolverInterface 
 {
 
-    protected $dataProvider;
+    protected $messageDataProvider;
+    protected $rmaDataProvider;
     protected $rmaCollectionFactory;
     protected $customerStrategy;
     protected $guestStrategy;
@@ -31,7 +32,8 @@ class SendMessage implements ResolverInterface
     protected $config;
 
     public function __construct(
-        \Simi\RMAGraphQL\Model\DataProvider\RmaDataArray $dataProvider,
+        \Simi\RMAGraphQL\Model\DataProvider\RmaDataArray $rmaDataProvider,
+        \Simi\RMAGraphQL\Model\DataProvider\GetMessageData $messageDataProvider,
         \Mirasvit\Rma\Helper\Controller\Rma\CustomerStrategy $customerStrategy,
         GuestStrategy $guestStrategy,
         \Mirasvit\Rma\Model\ResourceModel\Rma\CollectionFactory $rmaCollectionFactory,
@@ -45,7 +47,8 @@ class SendMessage implements ResolverInterface
         \Mirasvit\Rma\Api\Config\AttachmentConfigInterface $config
 
     ) {
-        $this->dataProvider = $dataProvider;
+        $this->rmaDataProvider = $rmaDataProvider;
+        $this->messageDataProvider = $messageDataProvider;
         $this->rmaCollectionFactory = $rmaCollectionFactory;
         $this->customerStrategy = $customerStrategy;
         $this->guestStrategy = $guestStrategy;
@@ -147,22 +150,21 @@ class SendMessage implements ResolverInterface
             
             }
         }
-        return $this->getReturnMessage($args['guest_id']);
+        $rmaIdReturn = $this->getThisRmaData($args['guest_id'])['rma_id'];
+        return $this->getMessageData($rmaIdReturn);
     } 
+    private function getMessageData($rmaId){
+        return $this->messageDataProvider->dataArray($rmaId);
+    }
 
     private function getThisRmaData($guestId){
-        $model = $this->rmaCollectionFactory->create()->getItems();
-        $dataArrays = $this->dataProvider->dataArray($model);
+        $collection = $this->rmaCollectionFactory->create()->addFieldToFilter('guest_id', $guestId)->getItems();
+        $dataArrays = $this->rmaDataProvider->dataArray($collection);
         foreach($dataArrays as $dataArray){
             if($dataArray['guest_id'] == $guestId){
                 return $dataArray;
             }
-        } 
-    }
-
-    private function getReturnMessage($guestId){
-        die(var_dump(json_decode(json_encode($this->getThisRmaData($guestId)))));
-        $rma_id =  $this->getThisRmaData($guestId)['rma_id'];
+        }
     }
 
     private function getLatestId($guestId){
