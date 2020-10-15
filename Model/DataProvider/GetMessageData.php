@@ -23,24 +23,30 @@ class GetMessageData
     protected $messageFactory;
     protected $attachmentFactory;
     protected $fileSystem;
-    
+    protected $attachmentRepository;
+    protected $storeManager;
+
     public function __construct(
         \Mirasvit\Rma\Model\ResourceModel\Item\CollectionFactory $itemModelFactory,
         \Mirasvit\Rma\Model\ResourceModel\Message\CollectionFactory $messageFactory,
         \Mirasvit\Rma\Model\ResourceModel\Attachment\CollectionFactory $attachmentFactory,
-        Filesystem $fileSystem
+        Filesystem $fileSystem,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Mirasvit\Rma\Api\Repository\AttachmentRepositoryInterface $attachmentRepository
     ) {
         $this->itemModelFactory = $itemModelFactory;
         $this->messageFactory = $messageFactory;
         $this->attachmentFactory = $attachmentFactory;
         $this->fileSystem = $fileSystem;
+        $this->attachmentRepository      = $attachmentRepository;
+        $this->storeManager              = $storeManager;
     }
     //@param: the array of the id of orders to return
     public function dataArray($rma_id)
     {
        try
         {   
-
+        $storeBaseUrl   = $this->storeManager->getStore()->getBaseUrl();
         $rmaDataMessage = [];
         $messages = $this->messageFactory->create()->addFieldToFilter( 'is_visible_in_frontend', '1' )->addFieldToFilter( 'rma_id', $rma_id )->getData();
         foreach ( $messages as $message ) 

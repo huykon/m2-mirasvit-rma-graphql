@@ -15,18 +15,13 @@ use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 
 class RmaDataArray {
 	protected $storeManager;
-	protected $customerSession;
 	protected $rmaCollectionFactory;
 	protected $productCollection;
 	protected $orderRepository;
 	protected $rmaManagement;
 	protected $itemModelFactory;
 	protected $_productCollectionFactory;
-	protected $messageFactory;
 	protected $_productRepository;
-	protected $attachmentFactory;
-	private $fileSystem;
-	protected $attachmentRepository;
 	protected $statusCollection;
 	protected $_productRepositoryFactory;
 	protected $statusRepository;
@@ -41,12 +36,8 @@ class RmaDataArray {
 		\Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
 		\Mirasvit\Rma\Api\Service\Rma\RmaManagementInterface $rmaManagement,
 		\Mirasvit\Rma\Model\ResourceModel\Item\CollectionFactory $itemModelFactory,
-		\Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
-		\Mirasvit\Rma\Model\ResourceModel\Message\CollectionFactory $messageFactory,
+		\Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactor,
 		\Magento\Catalog\Model\ProductRepository $productRepository,
-		\Mirasvit\Rma\Model\ResourceModel\Attachment\CollectionFactory $attachmentFactory,
-		Filesystem $fileSystem,
-		\Mirasvit\Rma\Api\Repository\AttachmentRepositoryInterface $attachmentRepository,
 		\Mirasvit\Rma\Model\ResourceModel\Status\CollectionFactory $statusCollection,
 		\Magento\Catalog\Api\ProductRepositoryInterfaceFactory $productRepositoryFactory,
 		\Mirasvit\Rma\Api\Repository\StatusRepositoryInterface $statusRepository,
@@ -61,7 +52,6 @@ class RmaDataArray {
 		$this->rmaManagement             = $rmaManagement;
 		$this->itemModelFactory          = $itemModelFactory;
 		$this->_productCollectionFactory = $productCollectionFactory;
-		$this->messageFactory            = $messageFactory;
 		$this->_productRepository        = $productRepository;
 		$this->attachmentFactory         = $attachmentFactory;
 		$this->fileSystem                = $fileSystem;
