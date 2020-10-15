@@ -60,46 +60,23 @@ class CreateRma implements ResolverInterface
     public function resolve(Field $field, $context, ResolveInfo $info, array $value = null, array $args = null)
     {
         // die(var_dump(get_class_methods($this->guestStrategy)));
-        $orderId = $args['newRmaInfo']['order_ids'][0];
+        $orderId = $args['newRmaInfo']['order_ids'];
         $orderItemIds = $this->getOrderItemsId($args['newRmaInfo']);
         
-        if(isset($args['newRmaInfo']['is_offline'])){
-            if($args['newRmaInfo']['is_offline'] == 1){
-                $strategy = $this->guestStrategy;
-                $strategy->setOrderId($args['newRmaInfo']['order_ids'][0]);
-                $args['newRmaInfo']['receipt_number'] = $args['newRmaInfo']['order_ids'];
-                unset($args['newRmaInfo']['order_ids']);
-                $args['newRmaInfo']['customer_id'] = "";
-                
-                $data = $args['newRmaInfo'];
-                $data['store_id'] = (int)$context->getExtensionAttributes()->getStore()->getId();
-                $data = $this->dataProcessor->createOfflineOrder($data);
-                
-                $rma  = $this->rmaSaveService->saveRma(
-                    $this->guestStrategy->getPerformer(),
-                    $this->dataProcessor->filterRmaData($data),
-                    $this->dataProcessor->filterRmaItems($data)
-                );
-            }
-            else{
-                return;
-            }
+        for ($i=0; $i <sizeof($args['newRmaInfo']['items']) ; $i++) { 
+            $args['newRmaInfo']['items'][$orderItemIds[$i]] = $args['newRmaInfo']['items'][$i];
+            unset($args['newRmaInfo']['items'][$i]);
         }
-        else{
-            for ($i=0; $i <sizeof($args['newRmaInfo']['items']) ; $i++) { 
-                $args['newRmaInfo']['items'][$orderItemIds[$i]] = $args['newRmaInfo']['items'][$i];
-                unset($args['newRmaInfo']['items'][$i]);
-            }
-            $strategy = $this->getStrategy($context, $orderId);
-            $data = $args['newRmaInfo'];
-            $data['store_id'] = (int)$context->getExtensionAttributes()->getStore()->getId();
+        $strategy = $this->getStrategy($context, $orderId);
+        $data = $args['newRmaInfo'];
+        $data['store_id'] = (int)$context->getExtensionAttributes()->getStore()->getId();
             // $data = $this->dataProcessor->createOfflineOrder($data);
-            $rma  = $this->rmaSaveService->saveRma(
-                $this->getPerfomer($context, $orderId),
-                $this->dataProcessor->filterRmaData($data),
-                $this->dataProcessor->filterRmaItems($data)
-            );
-        }
+        $rma  = $this->rmaSaveService->saveRma(
+            $this->getPerfomer($context, $orderId),
+            $this->dataProcessor->filterRmaData($data),
+            $this->dataProcessor->filterRmaItems($data)
+        );
+        
         
         $model = $this->rmaCollectionFactory->create()->getItems();
         $dataArrays = $this->dataProvider->dataArray($model);
@@ -163,5 +140,3 @@ class CreateRma implements ResolverInterface
         unset($data['rma_id']);
     }
 }
-
-

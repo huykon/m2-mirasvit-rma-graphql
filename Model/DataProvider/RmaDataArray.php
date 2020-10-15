@@ -78,6 +78,7 @@ class RmaDataArray {
 		$rmaDataMessage = [];
 		$rmaArray       = [];
 		$grandTotals = '';
+		$orderIncrementIds = [];
 
 		foreach ( $model as $rma ) {
 			//get the message data of this rma
@@ -167,17 +168,21 @@ class RmaDataArray {
 				$orderId           = $order->getID();
 				$orderDetail       = $this->orderRepository->get( $orderId );
 				$orderIncrementId  = $orderDetail->getIncrementId();
+				array_push($orderIncrementIds, $orderIncrementId);
 				$productCollection = $this->_productCollectionFactory->create();
 				$productCollection->addAttributeToSelect( '*' );
 				$grandTotals = ['value' => (float) $order->getGrandTotal(), 'currency' => $order->getOrderCurrencyCode()];
 
 				foreach ( $orderDetail->getAllItems() as $item ) {
 					$data = $item->getData();
-
+					// die(var_dump($data));
+					$orderDetail       = $this->orderRepository->get( $data['order_id'] );
+					$orderIncrementId  = $orderDetail->getIncrementId();
 					$product = $this->_productRepositoryFactory->create()->getById( $data['product_id'] );
 					$productUrl  = $product->getData()['image'];
 					$data['url'] = $this->getBaseUrl() . '/catalog/product' . $productUrl;
-
+					$data['order_increment_id'] = $orderIncrementId;
+					$data['product_name'] = $data['name'];
 					array_push( $orderDataItem, $data );
 				}
 
@@ -190,9 +195,9 @@ class RmaDataArray {
 			$rmaArray[ $rma->getId() ]['model']            = $rma;
 			$rmaArray[ $rma->getId() ]['order_info']       = $orderDataItem;
 			$rmaArray[ $rma->getId() ]['return_item']      = $rmaDataItem;
-			$rmaArray[ $rma->getId() ]['increment_id']     = $orderIncrementId;
+			$rmaArray[ $rma->getId() ]['increment_id']     = isset($orderIncrementIds)?$orderIncrementIds:"offline";
 			$rmaArray[ $rma->getId() ]['message']          = $rmaDataMessage;
-			$rmaArray[ $rma->getId() ]['order_id']         = $orderId;
+			$rmaArray[ $rma->getId() ]['order_id']         = isset($orderId)?$orderId:null;
 			$rmaArray[ $rma->getId() ]['rma_increment_id'] = $rma['increment_id'];
 			$rmaArray[ $rma->getId() ]['create_at']        = $rma['created_at'];
 			$rmaArray[ $rma->getId() ]['history_message']  = $history_message;
@@ -202,6 +207,7 @@ class RmaDataArray {
 			$orderDataItem  = [];
 			$rmaDataItem    = [];
 			$rmaDataMessage = [];
+			$orderIncrementIds = [];
 
 		}
 
@@ -211,5 +217,5 @@ class RmaDataArray {
 	private function getBaseUrl() {
 		return $this->storeManager->getStore()->getBaseUrl( \Magento\Framework\UrlInterface::URL_TYPE_MEDIA );
 	}
-
+	
 }

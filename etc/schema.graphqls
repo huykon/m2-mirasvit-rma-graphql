@@ -146,7 +146,6 @@ input NewRmaInfoInput @doc(description: "the input required to create a new rma 
 	items: [ItemsInput]
 	selected_order_id: Int
 	reply: String
-	
 }
 
 input ItemsInput @doc(description: "the information of items to create new rma"){
@@ -156,7 +155,6 @@ input ItemsInput @doc(description: "the information of items to create new rma")
 	reason_id: String
 	condition_id: String
 	resolution_id: String
-	
 }
 
 type ListData @doc(description: "reeturn data of the listing rma") {
@@ -174,7 +172,7 @@ type RmaDataInterfaces @doc(description: "the data inferfaces of rma"){
 	rma_id: String @doc(description: "the RMA number of this order")
 	guest_id: String @doc(description: "the guest id of this rma order, which distinguished which is which")
 	date: String @doc(description: "the created date of this order")
-	increment_id: String @doc(description: "the increment id of this returned order")
+	increment_id: [String] @doc(description: "the increment id of this returned order")
 	order_id: String @doc(description: "the order id of this returned order")
 	status_id: Int @doc(description: "current status of this return order")
 	status_history: String @doc(description: "the history status of this rma")
@@ -230,6 +228,7 @@ type OrderDetailProduct @doc(description: "the products information of this rma"
 	price: Int
 	url: String
 	created_at: String
+	order_increment_id: String
 	reason_condition: ReasonConditionInterface @doc(description: "reason and condition of this return")
 }
 
