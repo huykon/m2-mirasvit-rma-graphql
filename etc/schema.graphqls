@@ -1,4 +1,7 @@
 type Query {
+	getRmaMessage(
+		rma_id: String! ): [MessageInterface] @doc(description: "this query return the message of the rma") @resolver(class: "Simi\\RMAGraphQL\\Model\\Resolver\\MessageOfRma")
+	
 	rmaListData(
 		increment_id: String @doc(description: "this is the order increment id of the order, if not entered mean that this customer has already login"),
 		email: String @doc(description: "this is the email of the customer, if not entered mean that this customer has already login"),
@@ -181,7 +184,6 @@ type RmaDataInterfaces @doc(description: "the data inferfaces of rma"){
 	customer_id: Int @doc(description: "the customer id of whom this rma belongs to")
 	order_info: [OrderDetailProduct] @doc(description: "the products information of this order")
 	return_item: [OrderDetailProduct] @doc(description: "the information of this rma items")
-	message: [MessageInterface] @doc(description: "this is the message interface return back in the conversation of this rma")
 	create_at: String @doc(description: "exact time this rma was created")
 	rma_increment_id: String @doc(description: "increment id of the rma")
 	history_message: String @dodc(description: "the history message of the status id")

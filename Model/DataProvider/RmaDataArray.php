@@ -82,52 +82,7 @@ class RmaDataArray {
 		$storeBaseUrl   = $this->storeManager->getStore()->getBaseUrl();
 
 		foreach ( $model as $rma ) {
-			//get the message data of this rma
-			$messages = $this->messageFactory->create()->addFieldToFilter( 'is_visible_in_frontend', '1' )->addFieldToFilter( 'rma_id', $rma->getId() )->getData();
-			foreach ( $messages as $message ) {
-				//search whether this message have attachment or not
-				$attachmentsData = $this->attachmentFactory->create()->addFieldToFilter( 'item_id', $message['message_id'] );
-				$attachments     = [];
-				if ( $attachmentsData ) {
-					// die('123');
-					$mediaPath     = $this->fileSystem->getDirectoryRead( DirectoryList::MEDIA )->getAbsolutePath();
-					$originalPath  = 'Simicustomize/graphql/';
-					$mediaFullPath = $mediaPath . $originalPath;
-
-					foreach ( $attachmentsData as $attachmentData ) {
-						$uid                     = $attachmentData['uid'];
-						$attachment              = $this->attachmentRepository->getByUid( $uid );
-						$fileName                = $attachment->getName();
-						$fileType                = $attachment->getType();
-						$attachmentControllerUrl = $storeBaseUrl . 'returns/attachment/download/uid/' . $uid;
-
-						$attachment = [
-							'name'       => $fileName,
-							'type'       => $fileType,
-							'full_path'  => $mediaFullPath . $fileName,
-							'quote_path' => $originalPath . $fileName,
-							'order_path' => $originalPath . $fileName,
-							'link'       => $attachmentControllerUrl
-							// 'secret_key' => substr( md5( file_get_contents( $mediaFullPath . $fileName ) ), 0, 20 )
-						];
-						array_push( $attachments, $attachment );
-					}
-				}
-
-				$messageObject = [
-					'message_id'    => $message['message_id'],
-					'user_id'       => $message['user_id'],
-					'customer_name' => $message['customer_name'],
-					'customer_id'   => $message['customer_id'],
-					'content'       => $message['text'],
-					'is_read'       => $message['is_read'],
-					'created_at'    => $message['created_at'],
-					'updated_at'    => $message['updated_at'],
-					'items'         => $attachments
-				];
-				array_push( $rmaDataMessage, $messageObject );
-			}
-
+			
 			//get this rma return items and it's detail
 			$rma_items = $this->itemModelFactory->create()->addFieldToFilter( 'rma_id', $rma->getId() )->getData();
 			foreach ( $rma_items as $rma_item ) {
