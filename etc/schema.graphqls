@@ -141,7 +141,7 @@ type SimiUploadedReturn {
 input SimiUploadInput {
 	name: String!
 	type: String
-	size: Float
+	size: Int
 	base64_encoded_file: String!
 }
 
