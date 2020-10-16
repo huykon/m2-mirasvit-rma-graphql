@@ -26,7 +26,12 @@ class RmaDataArray {
 	protected $_productRepositoryFactory;
 	protected $statusRepository;
 	protected $mailHelper;
-	protected $currency;
+	private $mstHelperUrl;
+
+	/**
+	 * @var \Mirasvit\Rma\Api\Service\Rma\ShippingManagementInterface
+	 */
+	private $shippingManagement;
 
 	public function __construct(
 		CollectionFactory $productCollection,
@@ -42,7 +47,8 @@ class RmaDataArray {
 		\Magento\Catalog\Api\ProductRepositoryInterfaceFactory $productRepositoryFactory,
 		\Mirasvit\Rma\Api\Repository\StatusRepositoryInterface $statusRepository,
 		\Mirasvit\Rma\Helper\Mail $mailHelper,
-		\Magento\Directory\Model\Currency $currency
+		\Mirasvit\Rma\Helper\Rma\Url $mstHelperUrl,
+		\Mirasvit\Rma\Api\Service\Rma\ShippingManagementInterface $shippingManagement
 	) {
 		$this->_productRepositoryFactory = $productRepositoryFactory;
 		$this->storeManager              = $storeManager;
@@ -56,20 +62,20 @@ class RmaDataArray {
 		$this->statusCollection          = $statusCollection;
 		$this->statusRepository          = $statusRepository;
 		$this->mailHelper                = $mailHelper;
-		$this->currency                  = $currency;
+		$this->mstHelperUrl              = $mstHelperUrl;
+		$this->shippingManagement        = $shippingManagement;
 	}
 
 	public function dataArray( $model ) {
-		$orderDataItem  = [];
-		$rmaDataItem    = [];
-		$rmaDataMessage = [];
-		$rmaArray       = [];
-		$grandTotals    = '';
+		$orderDataItem     = [];
+		$rmaDataItem       = [];
+		$rmaDataMessage    = [];
+		$rmaArray          = [];
+		$grandTotals       = '';
 		$orderIncrementIds = [];
-		$storeBaseUrl   = $this->storeManager->getStore()->getBaseUrl();
 
 		foreach ( $model as $rma ) {
-			
+
 			//get this rma return items and it's detail
 			$rma_items = $this->itemModelFactory->create()->addFieldToFilter( 'rma_id', $rma->getId() )->getData();
 			foreach ( $rma_items as $rma_item ) {
@@ -104,25 +110,26 @@ class RmaDataArray {
 
 			foreach ( $this->rmaManagement->getOrders( $rma ) as $order ) {
 
-				$orderId           = $order->getID();
-				$orderDetail       = $this->orderRepository->get( $orderId );
-				$orderIncrementId  = $orderDetail->getIncrementId();
-				array_push($orderIncrementIds, $orderIncrementId);
+				$orderId          = $order->getID();
+				$orderDetail      = $this->orderRepository->get( $orderId );
+				$orderIncrementId = $orderDetail->getIncrementId();
+				array_push( $orderIncrementIds, $orderIncrementId );
 				$productCollection = $this->_productCollectionFactory->create();
 				$productCollection->addAttributeToSelect( '*' );
-				$grandTotals = [ 'value'    => (float) $order->getGrandTotal(),
-				                 'currency' => $order->getOrderCurrencyCode()
+				$grandTotals = [
+					'value'    => (float) $order->getGrandTotal(),
+					'currency' => $order->getOrderCurrencyCode()
 				];
 
 				foreach ( $orderDetail->getAllItems() as $item ) {
-					$data = $item->getData();
-					$orderDetail       = $this->orderRepository->get( $data['order_id'] );
-					$orderIncrementId  = $orderDetail->getIncrementId();
-					$product = $this->_productRepositoryFactory->create()->getById( $data['product_id'] );
-					$productUrl  = $product->getData()['image'];
-					$data['url'] = $this->getBaseUrl() . '/catalog/product' . $productUrl;
+					$data                       = $item->getData();
+					$orderDetail                = $this->orderRepository->get( $data['order_id'] );
+					$orderIncrementId           = $orderDetail->getIncrementId();
+					$product                    = $this->_productRepositoryFactory->create()->getById( $data['product_id'] );
+					$productUrl                 = $product->getData()['image'];
+					$data['url']                = $this->getBaseUrl() . '/catalog/product' . $productUrl;
 					$data['order_increment_id'] = $orderIncrementId;
-					$data['product_name'] = $data['name'];
+					$data['product_name']       = $data['name'];
 					array_push( $orderDataItem, $data );
 				}
 
@@ -131,22 +138,40 @@ class RmaDataArray {
 			$message         = $this->statusRepository->getHistoryMessageForStore( $status, $rma->getStoreId() );
 			$history_message = $this->mailHelper->parseVariables( $message, $rma );
 
+			$shippingInfo   = [
+				'print_url'           => '',
+				'print_label'         => '',
+				'is_required_confirm' => false
+			];
+
+			$isShowShipping = $this->shippingManagement->isShowShippingBlock( $rma );
+			if ( $isShowShipping ) {
+				$isRequireShippingConfirmation = $this->shippingManagement->isRequireShippingConfirmation( $rma );
+				$printUrl                      = $this->mstHelperUrl->getGuestPrintUrl( $rma );
+				$returnLabel = $this->rmaManagement->getReturnLabel($rma);
+
+				$shippingInfo['print_url']           = $printUrl;
+				$shippingInfo['print_label'] = $returnLabel;
+				$shippingInfo['is_required_confirm'] = $isRequireShippingConfirmation;
+			}
+
 			$rmaArray[ $rma->getId() ]                     = $rma->getData();
 			$rmaArray[ $rma->getId() ]['model']            = $rma;
 			$rmaArray[ $rma->getId() ]['order_info']       = $orderDataItem;
 			$rmaArray[ $rma->getId() ]['return_item']      = $rmaDataItem;
-			$rmaArray[ $rma->getId() ]['increment_id']     = isset($orderIncrementIds)?$orderIncrementIds:"offline";
+			$rmaArray[ $rma->getId() ]['increment_id']     = isset( $orderIncrementIds ) ? $orderIncrementIds : "offline";
 			$rmaArray[ $rma->getId() ]['message']          = $rmaDataMessage;
-			$rmaArray[ $rma->getId() ]['order_id']         = isset($orderId)?$orderId:null;
+			$rmaArray[ $rma->getId() ]['order_id']         = isset( $orderId ) ? $orderId : null;
 			$rmaArray[ $rma->getId() ]['rma_increment_id'] = $rma['increment_id'];
 			$rmaArray[ $rma->getId() ]['create_at']        = $rma['created_at'];
 			$rmaArray[ $rma->getId() ]['history_message']  = $history_message;
 			$rmaArray[ $rma->getId() ]['grand_totals']     = $grandTotals;
+			$rmaArray[ $rma->getId() ]['shipping']         = $shippingInfo;
 
-			$grandTotals    = "";
-			$orderDataItem  = [];
-			$rmaDataItem    = [];
-			$rmaDataMessage = [];
+			$grandTotals       = "";
+			$orderDataItem     = [];
+			$rmaDataItem       = [];
+			$rmaDataMessage    = [];
 			$orderIncrementIds = [];
 
 		}
@@ -157,5 +182,5 @@ class RmaDataArray {
 	private function getBaseUrl() {
 		return $this->storeManager->getStore()->getBaseUrl( \Magento\Framework\UrlInterface::URL_TYPE_MEDIA );
 	}
-	
+
 }

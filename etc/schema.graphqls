@@ -188,6 +188,7 @@ type RmaDataInterfaces @doc(description: "the data inferfaces of rma"){
 	rma_increment_id: String @doc(description: "increment id of the rma")
 	history_message: String @dodc(description: "the history message of the status id")
 	grand_totals: Money @doc(description: "the grand totals amount of the order")
+	shipping: RmaShippingItem @doc (description: "the rma shipping information")
 }
 
 type OrderNewData @doc(description: "the data of the order when the customere try to create new rma order"){
@@ -241,3 +242,8 @@ type ReasonConditionInterface @doc(description: "the reason and condition of thi
 	resolution_name: String
 }
 
+type RmaShippingItem {
+	print_url: String
+	print_label: String
+	is_required_confirm: Boolean
+}
